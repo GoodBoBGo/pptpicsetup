@@ -91,7 +91,6 @@ def process_file(path):
         print(f'  [SKIP] Unsupported: {ext}')
         return
 
-    is_pptx = ext == '.pptx'
     pres = None
     try:
         app = win32com.client.Dispatch('PowerPoint.Application')
@@ -132,13 +131,13 @@ End Sub
             ec.Name = 'EventClass'
         set_module(ec.CodeModule, VBA_EVENTCLASS)
 
-        if is_pptx:
-            new_path = os.path.splitext(path)[0] + '.pptm'
-            pres.SaveAs(new_path, 24)  # ppSaveAsOpenXMLMacroEnabled
-            print(f'  [OK] {idx} pictures -> {os.path.basename(new_path)}')
-        else:
+        if ext == '.ppt':
             pres.Save()
             print(f'  [OK] {idx} pictures: {os.path.basename(path)}')
+        else:
+            new_path = os.path.splitext(path)[0] + '.ppt'
+            pres.SaveAs(new_path, 1)  # ppSaveAsPresentation (97-2003 .ppt)
+            print(f'  [OK] {idx} pictures -> {os.path.basename(new_path)}')
 
         pres.Close()
     except Exception as e:
