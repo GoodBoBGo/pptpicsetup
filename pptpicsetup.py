@@ -6,9 +6,15 @@ Dim st As New Collection
 
 Sub TogglePic(ByVal sname As String)
     Dim shp As Shape, sw As Double, sh As Double, ar As Double
-    Dim saved As String, v As Variant
+    Dim saved As String, v As Variant, i As Long
     On Error Resume Next
     Set shp = ActivePresentation.SlideShowWindow.View.Slide.Shapes(sname)
+    If shp Is Nothing Then
+        For i = 1 To ActivePresentation.Slides.Count
+            Set shp = ActivePresentation.Slides(i).Shapes(sname)
+            If Not shp Is Nothing Then Exit For
+        Next
+    End If
     On Error GoTo 0
     If shp Is Nothing Then Exit Sub
     sw = ActivePresentation.PageSetup.SlideWidth
