@@ -3,41 +3,36 @@ import win32com.client
 
 VBA_MODULE = '''Option Explicit
 Dim st As New Collection
-Dim skipName As String
 
 Sub TogglePic(ByVal sname As String)
     Dim shp As Shape, sw As Double, sh As Double, ar As Double
     Dim saved As String, v As Variant
-    For Each shp In ActivePresentation.SlideShowWindow.View.Slide.Shapes
-        If shp.Name = sname Then
-            sw = ActivePresentation.PageSetup.SlideWidth
-            sh = ActivePresentation.PageSetup.SlideHeight
-            On Error Resume Next
-            saved = st(sname)
-            On Error GoTo 0
-            If saved = "" Then
-                st.Add shp.Left & "|" & shp.Top & "|" & shp.Width & "|" & shp.Height, sname
-                ar = shp.Width / shp.Height
-                If ar > sw / sh Then
-                    shp.Width = sw: shp.Height = sw / ar
-                    shp.Top = (sh - shp.Height) / 2: shp.Left = 0
-                Else
-                    shp.Height = sh: shp.Width = sh * ar
-                    shp.Left = (sw - shp.Width) / 2: shp.Top = 0
-                End If
-                shp.ZOrder msoBringToFront
-                If ActivePresentation.SlideShowWindow.View.Slide.SlideIndex = ActivePresentation.Slides.Count Then
-                    skipName = sname
-                End If
-            Else
-                v = Split(saved, "|")
-                shp.Left = CDbl(v(0)): shp.Top = CDbl(v(1))
-                shp.Width = CDbl(v(2)): shp.Height = CDbl(v(3))
-                st.Remove sname
-            End If
-            Exit For
+    On Error Resume Next
+    Set shp = ActivePresentation.SlideShowWindow.View.Slide.Shapes(sname)
+    On Error GoTo 0
+    If shp Is Nothing Then Exit Sub
+    sw = ActivePresentation.PageSetup.SlideWidth
+    sh = ActivePresentation.PageSetup.SlideHeight
+    On Error Resume Next
+    saved = st(sname)
+    On Error GoTo 0
+    If saved = "" Then
+        st.Add shp.Left & "|" & shp.Top & "|" & shp.Width & "|" & shp.Height, sname
+        ar = shp.Width / shp.Height
+        If ar > sw / sh Then
+            shp.Width = sw: shp.Height = sw / ar
+            shp.Top = (sh - shp.Height) / 2: shp.Left = 0
+        Else
+            shp.Height = sh: shp.Width = sh * ar
+            shp.Left = (sw - shp.Width) / 2: shp.Top = 0
         End If
-    Next
+        shp.ZOrder msoBringToFront
+    Else
+        v = Split(saved, "|")
+        shp.Left = CDbl(v(0)): shp.Top = CDbl(v(1))
+        shp.Width = CDbl(v(2)): shp.Height = CDbl(v(3))
+        st.Remove sname
+    End If
 End Sub
 
 Sub RestoreAllOnEnd(Pres As Presentation)
@@ -45,16 +40,12 @@ Sub RestoreAllOnEnd(Pres As Presentation)
     For Each s In Pres.Slides
         For Each shp In s.Shapes
             If shp.Type = 13 Then
-                If shp.Name = skipName Then
-                    skipName = ""
-                Else
-                    On Error Resume Next
-                    v = Split(st(shp.Name), "|")
-                    On Error GoTo 0
-                    If IsArray(v) Then
-                        shp.Left = CDbl(v(0)): shp.Top = CDbl(v(1))
-                        shp.Width = CDbl(v(2)): shp.Height = CDbl(v(3))
-                    End If
+                On Error Resume Next
+                v = Split(st(shp.Name), "|")
+                On Error GoTo 0
+                If IsArray(v) Then
+                    shp.Left = CDbl(v(0)): shp.Top = CDbl(v(1))
+                    shp.Width = CDbl(v(2)): shp.Height = CDbl(v(3))
                 End If
             End If
         Next
