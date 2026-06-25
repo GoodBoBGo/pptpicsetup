@@ -1,3 +1,16 @@
+"""
+pptpicsetup.py — 一次性注入點擊放大 VBA 到 PowerPoint 檔案
+
+用法:
+  python pptpicsetup.py            # 批次處理同目錄全部 .ppt/.pptx/.pptm
+  python pptpicsetup.py "file.ppt" # 處理單一檔案
+
+已知限制:
+  - 存成 .ppt (97-2003) 時，倒數第一張（最後一張索引）圖片
+    在放映中可能無法響應點擊，原因不明
+  - 解決方式：存成 .pptm 格式（巨集啟用 OpenXML）
+"""
+
 import sys, os, winreg, glob, pythoncom
 import win32com.client
 
